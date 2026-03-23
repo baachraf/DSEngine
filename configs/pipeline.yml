@@ -1,0 +1,13 @@
+03_End_to_End_Pipeline:
+  data:
+    source: 'examples/datasets/california_housing.csv'
+  steps:
+    - name: 'basic_stats'
+      type: 'normality'
+      params:
+        test: 'shapiro'
+    - name: 'correlations'
+      type: 'relationships'
+  output:
+    path: 'examples/outputs/'
+    format: ['json', 'html']

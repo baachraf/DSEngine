@@ -1,0 +1,24 @@
+04_Full_Pipeline_Declarative:
+  data:
+    source: 'examples/datasets/diabetes.csv'
+  steps:
+    - name: 'overview'
+      type: 'summary'
+    - name: 'distributions'
+      type: 'distributions'
+      params:
+        plot_type: 'kde'
+    - name: 'correlations'
+      type: 'correlations'
+      params:
+        method: 'pearson'
+        threshold: 0.5
+    - name: 'outliers'
+      type: 'outliers'
+      params:
+        method: 'iqr'
+        plot_type: 'boxplot'
+  output:
+    path: 'examples/outputs/'
+    format: ['html', 'json']
+    save_plots: true

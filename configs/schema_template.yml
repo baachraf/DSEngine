@@ -1,0 +1,15 @@
+# Copy this file, fill in your columns, and reference it in the validate step.
+columns:
+  column_name_1:
+    dtype: 'float64'
+    nullable: false
+    min: 0
+    max: 1000
+    allowed_values: null
+  column_name_2:
+    dtype: 'object'
+    nullable: true
+    allowed_values: ['A', 'B', 'C']
+  date_column:
+    dtype: 'datetime64[ns]'
+    nullable: false

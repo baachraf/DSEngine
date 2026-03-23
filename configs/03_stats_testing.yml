@@ -1,0 +1,19 @@
+03_Statistical_Testing_Declarative:
+  data:
+    source: 'examples/datasets/california_housing.csv'
+    columns: ['MedInc', 'HouseAge', 'AveRooms', 'MedHouseVal']
+  steps:
+    - name: 'check_normality'
+      type: 'normality'
+      params:
+        test: 'shapiro'
+        alpha: 0.05
+        plot_qq: true
+    - name: 'feature_relationships'
+      type: 'relationships'
+      params:
+        alpha: 0.05
+        plot_scatter: true
+  output:
+    path: 'examples/outputs/'
+    format: ['html']

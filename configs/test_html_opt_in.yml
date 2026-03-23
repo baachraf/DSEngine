@@ -1,0 +1,10 @@
+html_opt_in_experiment:
+  data:
+    source: 'tests/fixtures/sample_tabular.csv'
+  steps:
+    - name: 'data_overview'
+      type: 'summary'
+  output:
+    path: 'examples/outputs/'
+    format: ['html', 'json']
+    save_plots: true

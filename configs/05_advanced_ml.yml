@@ -1,0 +1,31 @@
+05_Advanced_Data_Science_Declarative:
+  data:
+    source: 'examples/datasets/diabetes.csv'
+  steps:
+    - name: 'pps_matrix'
+      type: 'pps'
+      params:
+        target: 'target'
+    - name: 'pca_space'
+      type: 'manifold'
+      params:
+        method: 'pca'
+        target_column: 'target'
+    - name: 'anomalies_if'
+      type: 'multivariate_outliers'
+      params:
+        contamination: 0.05
+    - name: 'check_leaks'
+      type: 'leakage'
+      params:
+        target_column: 'target'
+        threshold: 0.90
+    - name: 'data_drift_check'
+      type: 'drift'
+      params:
+        reference_source: 'examples/datasets/diabetes.csv'
+        alpha: 0.05
+  output:
+    path: 'examples/outputs/'
+    format: ['html']
+    save_plots: true

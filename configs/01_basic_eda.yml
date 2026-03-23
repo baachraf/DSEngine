@@ -1,0 +1,23 @@
+01_Basic_EDA_Declarative:
+  data:
+    source: 'tests/fixtures/sample_tabular.csv'
+  steps:
+    - name: 'data_overview'
+      type: 'summary'
+      params:
+        include_skew: true
+        include_kurtosis: true
+    - name: 'check_missing'
+      type: 'missing'
+      params:
+        plot_type: 'both'
+    - name: 'column_distributions'
+      type: 'distributions'
+      params:
+        plot_type: 'both'
+        bins: 30
+        show_normal_overlay: true
+  output:
+    path: 'examples/outputs/'
+    format: ['json']
+    save_plots: true

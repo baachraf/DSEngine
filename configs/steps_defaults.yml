@@ -1,0 +1,56 @@
+summary:
+  percentiles: [0.25, 0.5, 0.75]
+  include_skew: true
+  include_kurtosis: true
+distributions:
+  plot_type: 'both'
+  bins: 30
+  show_normal_overlay: false
+correlations:
+  method: 'pearson'
+  threshold: 0.7
+  annotate: true
+missing:
+  plot_type: 'bar'
+outliers:
+  method: 'iqr'
+  threshold: 1.5
+  plot_type: 'boxplot'
+categorical:
+  top_n: 10
+  plot_type: 'bar'
+  show_percentages: true
+hypothesis:
+  alpha: 0.05
+normality:
+  test: 'shapiro'
+  alpha: 0.05
+  plot_qq: true
+relationships:
+  alpha: 0.05
+  plot_scatter: true
+decomposition:
+  model: 'additive'
+stationarity:
+  alpha: 0.05
+ts_features:
+  lag_periods: [1, 7, 30]
+  rolling_windows: [7, 30]
+  extract_date_parts: true
+validate:
+  schema_path: null
+sample:
+  method: 'random'
+  size: 0.1
+  random_state: 42
+pps:
+  annotate: true
+multivariate_outliers:
+  contamination: 'auto'
+manifold:
+  method: 'pca'
+  n_components: 2
+leakage:
+  threshold: 0.95
+drift:
+  alpha: 0.05

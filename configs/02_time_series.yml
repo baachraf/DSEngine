@@ -1,0 +1,27 @@
+02_Time_Series_Analysis_Declarative:
+  data:
+    source: 'examples/datasets/aapl_stock.csv'
+    columns: ['Date', 'Close', 'Volume']
+  steps:
+    - name: 'trend_decomposition'
+      type: 'decomposition'
+      columns: ['Close']
+      params:
+        date_column: 'Date'
+        model: 'multiplicative'
+        period: 5
+    - name: 'stationarity_check'
+      type: 'stationarity'
+      columns: ['Close']
+      params:
+        date_column: 'Date'
+        alpha: 0.05
+    - name: 'feature_engineering'
+      type: 'ts_features'
+      params:
+        date_column: 'Date'
+        lag_periods: [1, 5, 20]
+        rolling_windows: [5, 20]
+  output:
+    path: 'examples/outputs/'
+    format: ['html']
