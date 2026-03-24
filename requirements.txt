@@ -11,9 +11,8 @@ seaborn>=0.12.0
 scipy>=1.9.0
 statsmodels>=0.13.0
 
-# Config parsing and Logging
+# Config parsing
 PyYAML>=6.0
-structlog>=23.0.0
 
 # File format support for loader.py
 openpyxl>=3.0.0
@@ -21,19 +20,3 @@ pyarrow>=10.0.0
 
 # HTML report generation
 jinja2>=3.1.0
-
-# Machine Learning & AI Features
-scikit-learn>=1.0.0
-
-# Examples
-jupyter>=1.0.0
-yfinance>=0.2.0
-
-# Documentation
-sphinx>=5.0.0
-sphinx-rtd-theme>=1.0.0
-nbsphinx>=0.8.0
-
-# Development and testing
-pytest>=7.0.0
-pytest-cov>=4.0.0

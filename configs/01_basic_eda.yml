@@ -1,6 +1,6 @@
 01_Basic_EDA_Declarative:
   data:
-    source: 'tests/fixtures/sample_tabular.csv'
+    source: 'examples/datasets/diabetes.csv'
   steps:
     - name: 'data_overview'
       type: 'summary'
