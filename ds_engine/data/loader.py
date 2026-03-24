@@ -1,75 +1,77 @@
 """
 ds_engine.data.loader
 =====================
+Handles data ingestion from CSV, Excel, JSON, and Parquet.
+Returns a clean pandas DataFrame.
 
-Accept a file path in any supported format and return a clean pandas DataFrame.
-This module does not follow the block contract. Called directly by pipeline_runner.
-Expected params keys:
-    separator (str): Default ','.
-    encoding (str): Default 'utf-8'.
-    sheet_name (int/str): Default 0.
-    orient (str): Default 'records'.
+Expected loader_params keys:
+    separator (str): Delimiter. Default: ','.
+    encoding (str): Text encoding. Default: 'utf-8'.
+    sheet_name (int|str): For Excel. Default: 0.
+    orient (str): For JSON. Default: 'records'.
 """
 
-import sys
 import pandas as pd
+from typing import Any
 import re
 from pathlib import Path
-from typing import Any
-from ds_engine.utils import logger
 
 def sanitize_column_name(col: Any) -> str:
-    """Lowercase + replace non-word chars, strip leading/trailing underscores."""
-    return re.sub(r'[^\w]', '_', str(col).strip().lower()).strip('_')
+    """Sanitize a single column name."""
+    col_str = str(col)
+    return re.sub(r'[^\w]', '_', col_str.strip().lower()).strip('_')
 
-def sanitize_column_list(columns: list[str]) -> list[str]:
-    """Apply sanitize_column_name to a list of strings."""
-    if not columns:
+def sanitize_column_list(cols: list[Any]) -> list[str]:
+    """Sanitize a list of column names."""
+    if not cols:
         return []
-    return [sanitize_column_name(c) for c in columns]
+    return [sanitize_column_name(c) for c in cols]
 
 def _sanitize_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Strip whitespace, replace spaces and special chars with underscores.
-    Logs any name changes so the user knows what to put in pipeline.yml.
-    """
+    """Strip whitespace, replace spaces and special chars with underscores."""
     df = df.copy()
-    new_cols = []
-    for col in df.columns:
-        original = col
-        sanitized = sanitize_column_name(col)
-        
-        if sanitized != original:
-            logger.log_warning(f"Column name changed: '{original}' -> '{sanitized}'")
-        new_cols.append(sanitized)
+    original_cols = list(df.columns)
+    
+    new_cols = sanitize_column_list(original_cols)
         
     df.columns = new_cols
+    
+    # Log column name changes
+    try:
+        from ds_engine.utils import logger
+        log = logger.get_logger('loader')
+        for orig, new in zip(original_cols, new_cols):
+            if str(orig) != new:
+                log.warning(f"Column name changed: '{orig}' -> '{new}'")
+    except ImportError:
+        pass # In case logger is not available yet
+        
     return df
 
-def load(
-    source: str, 
-    columns: list[str], 
-    params: dict[str, Any]
-) -> pd.DataFrame:
-    """Load a dataset into a pandas DataFrame.
+def load(source: str, columns: list[str], params: dict[str, Any]) -> pd.DataFrame:
+    """Load data from source file into a pandas DataFrame.
     
     Args:
-        source (str): Absolute file path to the dataset.
-        columns (list[str]): List of columns to load. If empty, load all.
-        params (dict): Load configuration (separator, encoding, etc).
-        
+        source (str): Absolute or relative path to the data file.
+        columns (list[str]): List of column names to load. Empty list means all columns.
+        params (dict[str, Any]): Loader specific parameters.
+            - separator (str): Default ','.
+            - encoding (str): Default 'utf-8'.
+            - sheet_name (int|str): Default 0.
+            - orient (str): Default 'records'.
+            
     Returns:
-        pd.DataFrame: The loaded DataFrame.
+        pd.DataFrame: Sourced and sanitized data.
         
     Raises:
-        SystemExit: On FATAL errors (file missing, format not supported, decoding err).
+        ValueError: If file format is not supported or encoding fails.
     """
-    path = Path(source)
-    if not path.is_file():
-        logger.log_error(f"[FATAL] Data source file not found.\n"
-                         f"Caused by: resolved path '{source}' does not exist.")
-        sys.exit(2)
+    source_path = Path(source)
+    if not source_path.exists():
+        raise ValueError(f"File not found: {source}")
         
-    ext = path.suffix.lower()
+    ext = source_path.suffix.lower()
+    
     sep = params.get('separator', ',')
     enc = params.get('encoding', 'utf-8')
     sheet = params.get('sheet_name', 0)
@@ -78,44 +80,40 @@ def load(
     try:
         if ext == '.csv':
             try:
-                df = pd.read_csv(source, sep=sep, encoding=enc)
+                df = pd.read_csv(source_path, sep=sep, encoding=enc)
             except UnicodeDecodeError:
-                logger.log_warning(f"File failed to decode with '{enc}'. Falling back to 'latin-1'.")
+                # Fallback to latin-1
                 try:
-                    df = pd.read_csv(source, sep=sep, encoding='latin-1')
+                    from ds_engine.utils import logger
+                    log = logger.get_logger('loader')
+                    log.warning(f"Failed to decode {source} with {enc}. Falling back to 'latin-1'")
+                except ImportError:
+                    pass
+                try:
+                    df = pd.read_csv(source_path, sep=sep, encoding='latin-1')
                 except Exception:
-                    logger.log_error(
-                        f"[FATAL] File could not be decoded. "
-                        f"Try specifying encoding in loader_params (e.g. encoding: cp1252 or encoding: iso-8859-1)."
-                    )
-                    sys.exit(2)
+                    raise ValueError("File could not be decoded. Try specifying encoding in loader_params (e.g. encoding: cp1252 or encoding: iso-8859-1).")
         elif ext in ['.xlsx', '.xls']:
-            df = pd.read_excel(source, sheet_name=sheet)
+            df = pd.read_excel(source_path, sheet_name=sheet)
         elif ext == '.json':
-            df = pd.read_json(source, orient=orient)
+            df = pd.read_json(source_path, orient=orient)
         elif ext == '.parquet':
-            df = pd.read_parquet(source)
+            df = pd.read_parquet(source_path)
         else:
-            logger.log_error(f"[FATAL] File format not supported for '{path.name}'.")
-            sys.exit(2)
+            raise ValueError(f"Unsupported file format: {ext}")
             
     except Exception as e:
-        logger.log_error(f"[FATAL] File exists but cannot be read: {e}")
-        sys.exit(2)
+        if isinstance(e, ValueError) and ("Unsupported file format" in str(e) or "File could not be decoded" in str(e)):
+            raise
+        raise ValueError(f"Failed to read file {source}. Error: {e}")
         
-    # Apply column sanitization
     df = _sanitize_columns(df)
     
-    # Filter columns if requested
     if columns:
-        # Sanitize requested columns to match normalized DataFrame columns
-        sanitized_req = sanitize_column_list(columns)
-        missing = [c for idx, c in enumerate(sanitized_req) if c not in df.columns]
+        sanitized_columns = sanitize_column_list(columns)
+        missing = [c for c in sanitized_columns if c not in df.columns]
         if missing:
-            # Show original names in error message for better UX
-            orig_missing = [columns[idx] for idx, c in enumerate(sanitized_req) if c not in df.columns]
-            logger.log_error(f"[FATAL] Requested columns not found in dataset: {orig_missing}")
-            sys.exit(2)
-        df = df[sanitized_req]
+            raise ValueError(f"Columns not found in dataset: {columns} (sanitized as {sanitized_columns})")
+        df = df[sanitized_columns]
         
     return df

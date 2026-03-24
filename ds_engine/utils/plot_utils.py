@@ -1,89 +1,89 @@
 """
 ds_engine.utils.plot_utils
 ==========================
-
 Shared plotting engine for DSEngine.
-Provides a single source of truth for figure creation, styling, and finalization.
-Blocks must use these functions instead of calling matplotlib directly.
+Every block that generates plots must use these functions instead of calling matplotlib directly.
 """
 
 import matplotlib.pyplot as plt
-import matplotlib.figure
-import seaborn as sns
-from typing import Optional
+from typing import Any
 
+# Constants as defined in Section 10b.2
 STYLE           = 'seaborn-v0_8-whitegrid'
 DEFAULT_COLOR   = '#2E75B6'
 PALETTE         = 'muted'
-FIGSIZE_SINGLE  = (10, 6)    # single plot
-FIGSIZE_GRID    = (14, 10)   # multi-panel (e.g. decomposition)
-FIGSIZE_WIDE    = (14, 5)    # wide single plot (e.g. correlation heatmap)
-EMBED_DPI       = 150        # used by html_report.py for base64 embedding
-EXPORT_DPI      = 150        # used by plot_exporter.py for file saving
+FIGSIZE_SINGLE  = (10, 6)
+FIGSIZE_GRID    = (14, 10)
+FIGSIZE_WIDE    = (14, 5)
+EMBED_DPI       = 150
+EXPORT_DPI      = 150
 
-
-def create_figure(
-    title: str, 
-    figsize: Optional[tuple[int, int]] = None
-) -> tuple[matplotlib.figure.Figure, plt.Axes]:
-    """Create a new centralized figure.
+def create_figure(title: str, figsize: tuple[int, int] | None = None) -> tuple[plt.Figure, plt.Axes]:
+    """Create a new figure with standard style applied.
     
     Args:
-        title (str): The main figure suptitle.
-        figsize (tuple, optional): Dimensions of the figure. Defaults to FIGSIZE_SINGLE.
+        title (str): Suptitle of the figure.
+        figsize (tuple[int, int] | None): Figure size. Defaults to FIGSIZE_SINGLE.
         
     Returns:
-        tuple[matplotlib.figure.Figure, plt.Axes]: The generated figure and axis.
+        tuple[plt.Figure, plt.Axes]: Figure and Axes objects.
     """
-    plt.style.use(STYLE)
-    fig, ax = plt.subplots(figsize=figsize or FIGSIZE_SINGLE)
+    try:
+        plt.style.use(STYLE)
+    except OSError:
+        pass # fallback if style not available
+        
+    if figsize is None:
+        figsize = FIGSIZE_SINGLE
+        
+    fig, ax = plt.subplots(figsize=figsize)
     fig.suptitle(title)
     return fig, ax
 
-
-def create_figure_grid(
-    title: str, 
-    nrows: int, 
-    ncols: int, 
-    figsize: Optional[tuple[int, int]] = None
-) -> tuple[matplotlib.figure.Figure, plt.Axes]:
-    """Create a new centralized figure with multiple panels.
+def create_figure_grid(title: str, nrows: int, ncols: int, figsize: tuple[int, int] | None = None) -> tuple[plt.Figure, Any]:
+    """Create a multi-panel figure.
     
     Args:
-        title (str): The main figure suptitle.
+        title (str): Suptitle of the figure.
         nrows (int): Number of rows.
         ncols (int): Number of columns.
-        figsize (tuple, optional): Dimensions of the figure. Defaults to FIGSIZE_GRID.
+        figsize (tuple[int, int] | None): Figure size. Defaults to FIGSIZE_GRID if grid.
         
     Returns:
-        tuple[matplotlib.figure.Figure, plt.Axes]: The generated figure and array of axes.
+        tuple[plt.Figure, Any]: Figure and array of Axes objects.
     """
-    plt.style.use(STYLE)
-    fig, axes = plt.subplots(nrows, ncols, figsize=figsize or FIGSIZE_GRID)
+    try:
+        plt.style.use(STYLE)
+    except OSError:
+        pass
+        
+    if figsize is None:
+        figsize = FIGSIZE_GRID
+        
+    fig, axes = plt.subplots(nrows, ncols, figsize=figsize)
     fig.suptitle(title)
     return fig, axes
 
-
-def finalize_figure(fig: matplotlib.figure.Figure) -> matplotlib.figure.Figure:
-    """Apply tight layout adjustments before saving.
+def finalize_figure(fig: plt.Figure) -> plt.Figure:
+    """Finalize figure layout before saving or returning.
     
     Args:
-        fig (matplotlib.figure.Figure): The figure to finalize.
+        fig (plt.Figure): The Matplotlib Figure object.
         
     Returns:
-        matplotlib.figure.Figure: The adjusted figure.
+        plt.Figure: The same Figure object.
     """
     fig.tight_layout()
     return fig
 
-
 def get_palette(n_colors: int) -> list[str]:
-    """Return a list of hex colors from the standard palette.
+    """Get a list of hex color strings from the standard palette.
     
     Args:
         n_colors (int): Number of colors requested.
         
     Returns:
-        list[str]: Selection of hex format colors.
+        list[str]: List of hex color strings.
     """
-    return sns.color_palette(PALETTE, n_colors=n_colors).as_hex()
+    import seaborn as sns
+    return sns.color_palette(PALETTE, n_colors).as_hex()

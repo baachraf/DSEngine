@@ -1,6 +1,6 @@
 html_opt_in_experiment:
   data:
-    source: 'tests/fixtures/sample_tabular.csv'
+    source: 'examples/datasets/diabetes.csv'
   steps:
     - name: 'data_overview'
       type: 'summary'

@@ -19,7 +19,6 @@ setup(
     extras_require={
         'docs': ['sphinx', 'sphinx-rtd-theme', 'nbsphinx'],
         'dev':  ['pytest', 'pytest-cov'],
-        'examples': ['jupyter', 'yfinance'],
     },
     classifiers=[
         'Programming Language :: Python :: 3',

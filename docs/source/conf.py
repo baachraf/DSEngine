@@ -2,7 +2,6 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath('../..'))  # points to DSEngine/ root
-
 project = 'DSEngine'
 author = 'DSEngine Contributors'
 release = '1.0.0'
@@ -36,7 +35,6 @@ autosummary_generate = True
 
 # HTML theme
 html_theme = 'sphinx_rtd_theme'
-
 html_theme_options = {
     'navigation_depth': 4,
     'titles_only': False,

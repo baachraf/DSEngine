@@ -45,10 +45,6 @@ DSEngine/
 │           │   ├── distributions_0.png
 │           │   └── correlations_0.png
 │           └── run.log
-└── tests/
-    └── fixtures/
-        ├── sample_tabular.csv   ← Used by tests and example notebooks
-        └── sample_timeseries.csv
 ```
 
 Create a `pipeline.yml` in the `configs/` directory:
@@ -89,12 +85,6 @@ To rebuild documentation:
 ```bash
 cd docs/
 make html
-```
-
-## Running tests
-```bash
-pip install pytest
-pytest
 ```
 
 ## Contributing
