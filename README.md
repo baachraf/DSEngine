@@ -25,27 +25,39 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-## Quickstart Example
+## Repository Structure
 
-The following standard project data layout is what all examples expect:
+The DSEngine project strictly follows this blueprint layout:
 ```text
 DSEngine/
-├── data/                        ← PUT USER DATASETS HERE
-│   ├── customers.csv
-│   ├── sales_daily.csv
-│   └── large_transactions.csv
-├── configs/
-│   └── pipeline.yml             ← reference as: source: 'data/customers.csv'
-├── outputs/                     ← REPORTS ARE WRITTEN HERE (auto-created)
-│   └── full_eda/
-│       └── 20240315_143022/
-│           ├── report.html
-│           ├── report.json
-│           ├── plots/
-│           │   ├── distributions_0.png
-│           │   └── correlations_0.png
-│           └── run.log
+├── ds_engine/                  ← Core library package
+│   ├── data/                   ← Data ingestion and preparation
+│   ├── exploration/            ← EDA functional blocks
+│   ├── statistics/             ← Statistical analysis blocks
+│   ├── time_series/            ← Time series analysis blocks
+│   ├── reporting/              ← Output and report generation
+│   └── utils/                  ← Internal infrastructure
+├── configs/                    ← User-facing configuration files
+│   ├── pipeline.yml            ← User defines experiments here
+│   ├── steps_defaults.yml      ← Default parameters for each step type
+│   └── schema_template.yml     ← Template for data validation schemas
+├── examples/                   ← Example notebooks and pipeline runner
+│   ├── run_pipeline.py         ← CLI entry point
+│   ├── datasets/               ← PUT USER DATASETS HERE
+│   ├── 00_Download_Datasets.ipynb
+│   ├── 01_Basic_EDA_Declarative.ipynb
+│   ├── 02_Time_Series_Analysis_Declarative.ipynb
+│   ├── 03_Statistical_Testing_Declarative.ipynb
+│   ├── 04_Full_Pipeline_Declarative.ipynb
+│   └── 05_Advanced_Data_Science_Declarative.ipynb
+├── docs/                       ← Sphinx documentation
+├── requirements.txt
+├── setup.py
+├── LICENSE                     ← MIT License text
+└── README.md
 ```
+
+## Quickstart Example
 
 Create a `pipeline.yml` in the `configs/` directory:
 ```yaml
@@ -78,13 +90,23 @@ Run the pipeline:
 python examples/run_pipeline.py --experiment my_first_experiment
 ```
 
+## Interactive Notebooks
+
+DSEngine ships with pre-configured Jupyter notebooks in the `examples/` directory that demonstrate each core module. Rather than rewriting code, these interactive notebooks load the YAML files inside the `configs/` folder and automatically run the entire declarative pipeline.
+
+To use them:
+1. Place your dataset in `examples/datasets/`.
+2. Edit the corresponding YAML file in `configs/` (e.g. `configs/01_basic_eda.yml`) to point `data.source` to your dataset.
+3. Open the corresponding example notebook (e.g. `00_Basic_EDA.ipynb`) and run the cells.
+4. The notebook will automatically compile the pipeline run and embed the generated analytical HTML reports directly inside of your Jupyter environment!
+
 ## Documentation
 Sphinx-generated HTML documentation is included in the repository.
 Open `docs/build/html/index.html` in your browser.
 To rebuild documentation:
 ```bash
 cd docs/
-make html
+python -m sphinx -b html source build/html
 ```
 
 ## Contributing
