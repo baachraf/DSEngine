@@ -34,6 +34,13 @@ STEP_REGISTRY = {
     'manifold'       : 'ds_engine.exploration.manifold',
     'leakage'        : 'ds_engine.exploration.leakage',
     'drift'          : 'ds_engine.statistics.drift',
+    'impute'          : 'ds_engine.preparation.impute',
+    'scale'           : 'ds_engine.preparation.scale',
+    'encode'          : 'ds_engine.preparation.encode',
+    'power_transform' : 'ds_engine.preparation.power_transform',
+    'clip_outliers'   : 'ds_engine.preparation.clip_outliers',
+    'log_transform'   : 'ds_engine.preparation.log_transform',
+    'bin'             : 'ds_engine.preparation.bin',
 }
 
 def parse(config_path: str, experiment_name: str) -> dict[str, Any]:
@@ -67,16 +74,22 @@ def parse(config_path: str, experiment_name: str) -> dict[str, Any]:
         raise ValueError(f"Missing 'data.source' block in experiment '{experiment_name}'")
         
     raw_source = experiment['data']['source']
-    source_path = Path(raw_source)
-    if not source_path.is_absolute():
-        source_path = (project_root / raw_source).resolve()
-        
-    if not source_path.exists():
-        raise ValueError(
-            f"data.source file not found: '{source_path}'\n"
-            f"Resolved from: '{raw_source}' relative to project root '{project_root}'"
-        )
-    experiment['data']['source'] = str(source_path)
+    
+    # Catch database connection strings specifically so we don't try to resolve as local path
+    db_dialects = ('sqlite://', 'mysql://', 'postgresql://', 'oracle://', 'mssql://')
+    if raw_source.startswith(db_dialects):
+        experiment['data']['source'] = raw_source
+    else:
+        source_path = Path(raw_source)
+        if not source_path.is_absolute():
+            source_path = (project_root / raw_source).resolve()
+            
+        if not source_path.exists():
+            raise ValueError(
+                f"data.source file not found: '{source_path}'\n"
+                f"Resolved from: '{raw_source}' relative to project root '{project_root}'"
+            )
+        experiment['data']['source'] = str(source_path)
     # Default columns missing handling
     experiment['data'].setdefault('columns', [])
     experiment['data'].setdefault('loader_params', {})

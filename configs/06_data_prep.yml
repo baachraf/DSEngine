@@ -1,0 +1,61 @@
+06_data_preparation_demo:
+  data:
+    source: "examples/datasets/prep_demo.csv"
+
+  output:
+    path: "examples/outputs/"
+    format: ["json", "html"]
+
+  steps:
+    # --- Step 1: Handle Missing Values ---
+    # Fill any nulls using the median of each column
+    - name: "fill_missing_values"
+      type: "impute"
+      columns: ["age", "income"]
+      params:
+        method: "median"
+
+    # --- Step 2: Normalize Numeric Features ---
+    # Standard scale so all numeric columns are on the same scale
+    - name: "standardize_features"
+      type: "scale"
+      columns: ["age", "income", "score"]
+      params:
+        method: "standard"
+
+    # --- Step 3: Encode Categorical Columns ---
+    # One-hot encode the 'group' column (A/B/C -> 0/1/2 for label, or dummies for onehot)
+    - name: "encode_group"
+      type: "encode"
+      columns: ["group"]
+      params:
+        method: "label"
+
+    # Label-encode the 'education' column (ordinal)
+    - name: "encode_education"
+      type: "encode"
+      columns: ["education"]
+      params:
+        method: "label"
+
+    # --- Step 4: Summary After Preparation ---
+    - name: "post_prep_summary"
+      type: "summary"
+      params:
+        include_skew: true
+        include_kurtosis: true
+
+    # --- Step 5: ANOVA with Effect Size & Post-hoc Analysis ---
+    # Test whether group has a significant effect on score
+    - name: "group_anova"
+      type: "hypothesis"
+      params:
+        test: "anova"
+        group_column: "group"
+        alpha: 0.05
+
+    # --- Step 6: Relationship Analysis ---
+    - name: "relationships"
+      type: "relationships"
+      params:
+        alpha: 0.05

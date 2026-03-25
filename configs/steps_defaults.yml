@@ -54,3 +54,23 @@ leakage:
   threshold: 0.95
 drift:
   alpha: 0.05
+impute:
+  method: 'mean'
+  fill_value: null
+scale:
+  method: 'standard'
+encode:
+  method: 'onehot'
+  drop_first: true
+power_transform:
+  method: 'yeo-johnson'
+clip_outliers:
+  method: 'iqr'
+  factor: 1.5
+log_transform:
+  method: 'log1p'
+bin:
+  method: 'uniform'
+  n_bins: 5
+  suffix: '_bin'
+  drop_original: false

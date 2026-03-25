@@ -1,3 +1,4 @@
+
 # Core data handling
 pandas>=1.5.0
 numpy>=1.23.0
@@ -20,3 +21,6 @@ pyarrow>=10.0.0
 
 # HTML report generation
 jinja2>=3.1.0
+
+# Database connectors
+SQLAlchemy>=2.0.0

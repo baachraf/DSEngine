@@ -1,0 +1,13 @@
+db_experiment:
+  data:
+    source: "sqlite:///../examples/datasets/demo.db"
+    loader_params:
+      table: "employees"
+  
+  output:
+    path: "examples/outputs/09_Database_Loading_Declarative/"
+    format: ["html", "json"]
+
+  steps:
+    - name: "summary_stats"
+      type: "summary"

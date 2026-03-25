@@ -1,0 +1,66 @@
+07_advanced_transforms_demo:
+  data:
+    source: "examples/datasets/prep_demo.csv"
+
+  output:
+    path: "examples/outputs/"
+    format: ["json", "html"]
+
+  steps:
+    # ── Step 1: Fill Missing Values first (prerequisite for downstream steps) ──
+    - name: "fill_missing_values"
+      type: "impute"
+      columns: ["age", "income"]
+      params:
+        method: "median"
+
+    # ── Step 2: Clip extreme values with IQR winsorisation ──
+    - name: "clip_outliers_iqr"
+      type: "clip_outliers"
+      columns: ["age", "income", "score"]
+      params:
+        method: "iqr"
+        factor: 1.5
+
+    # ── Step 3: Log1p to compress the right-skewed 'income' column ──
+    - name: "log_income"
+      type: "log_transform"
+      columns: ["income"]
+      params:
+        method: "log1p"
+
+    # ── Step 4: Yeo-Johnson power transform on remaining numeric ──
+    - name: "power_transform_yj"
+      type: "power_transform"
+      columns: ["age", "score"]
+      params:
+        method: "yeo-johnson"
+
+    # ── Step 5: Bin age into 4 equal-width groups ──
+    - name: "bin_age"
+      type: "bin"
+      columns: ["age"]
+      params:
+        method: "uniform"
+        n_bins: 4
+        labels: ["young", "adult", "senior", "elder"]
+        suffix: "_group"
+        drop_original: false
+
+    # ── Step 6: Bin income into quartiles ──
+    - name: "bin_income_quantile"
+      type: "bin"
+      columns: ["income"]
+      params:
+        method: "quantile"
+        n_bins: 4
+        labels: ["Q1_low", "Q2_mid", "Q3_high", "Q4_top"]
+        suffix: "_quartile"
+        drop_original: false
+
+    # ── Step 7: Summary after all transforms ──
+    - name: "post_transform_summary"
+      type: "summary"
+      params:
+        include_skew: true
+        include_kurtosis: true

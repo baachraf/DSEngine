@@ -1,0 +1,86 @@
+# 08_Hyperparameter_Comparison_Demo
+
+# This file contains 3 different configurations (experiments) to demonstrate
+# how to easily test and compare different hyperparameters for the same dataset
+# purely through declarative YAML.
+
+# Experiment A - Baseline (No transformations)
+exp_A_baseline:
+  data:
+    source: "examples/datasets/verify_prep.csv"
+  output:
+    path: "examples/outputs/08_Hyperparams_Declarative/"
+    format: ["json"]
+  steps:
+    - name: "impute_mean"
+      type: "impute"
+      columns: ["age", "income"]
+      params:
+        method: "mean"
+    - name: "relationships_baseline"
+      type: "relationships"
+      params:
+        alpha: 0.05
+
+# Experiment B - Standard Scaling & IQR Clipping
+exp_B_standard_iqr:
+  data:
+    source: "examples/datasets/verify_prep.csv"
+  output:
+    path: "examples/outputs/08_Hyperparams_Declarative/"
+    format: ["json"]
+  steps:
+    - name: "impute_median"
+      type: "impute"
+      columns: ["age", "income"]
+      params:
+        method: "median"
+    - name: "clip_iqr"
+      type: "clip_outliers"
+      columns: ["age", "income", "score"]
+      params:
+        method: "iqr"
+        factor: 1.5
+    - name: "scale_standard"
+      type: "scale"
+      columns: ["age", "income", "score"]
+      params:
+        method: "standard"
+    - name: "relationships_standard_iqr"
+      type: "relationships"
+      params:
+        alpha: 0.05
+
+# Experiment C - Robust Scaling & Z-score Clipping & Yeo-Johnson
+exp_C_robust_yj:
+  data:
+    source: "examples/datasets/verify_prep.csv"
+  output:
+    path: "examples/outputs/08_Hyperparams_Declarative/"
+    format: ["json"]
+  steps:
+    - name: "impute_median"
+      type: "impute"
+      columns: ["age", "income"]
+      params:
+        method: "median"
+    - name: "clip_zscore"
+      type: "clip_outliers"
+      columns: ["age", "income", "score"]
+      params:
+        method: "zscore"
+        factor: 2.0
+    - name: "scale_robust"
+      type: "scale"
+      columns: ["age", "income", "score"]
+      params:
+        method: "robust"
+    - name: "transform_yj"
+      type: "power_transform"
+      columns: ["age", "income", "score"]
+      params:
+        method: "yeo-johnson"
+    - name: "relationships_robust_yj"
+      type: "relationships"
+      params:
+        alpha: 0.05

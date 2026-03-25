@@ -66,46 +66,63 @@ def load(source: str, columns: list[str], params: dict[str, Any]) -> pd.DataFram
     Raises:
         ValueError: If file format is not supported or encoding fails.
     """
-    source_path = Path(source)
-    if not source_path.exists():
-        raise ValueError(f"File not found: {source}")
-        
-    ext = source_path.suffix.lower()
-    
-    sep = params.get('separator', ',')
-    enc = params.get('encoding', 'utf-8')
-    sheet = params.get('sheet_name', 0)
-    orient = params.get('orient', 'records')
-    
-    try:
-        if ext == '.csv':
+    db_dialects = ('sqlite://', 'mysql://', 'postgresql://', 'oracle://', 'mssql://')
+    if source.startswith(db_dialects):
+        table = params.get('table')
+        query = params.get('query')
+        if query:
             try:
-                df = pd.read_csv(source_path, sep=sep, encoding=enc)
-            except UnicodeDecodeError:
-                # Fallback to latin-1
-                try:
-                    from ds_engine.utils import logger
-                    log = logger.get_logger('loader')
-                    log.warning(f"Failed to decode {source} with {enc}. Falling back to 'latin-1'")
-                except ImportError:
-                    pass
-                try:
-                    df = pd.read_csv(source_path, sep=sep, encoding='latin-1')
-                except Exception:
-                    raise ValueError("File could not be decoded. Try specifying encoding in loader_params (e.g. encoding: cp1252 or encoding: iso-8859-1).")
-        elif ext in ['.xlsx', '.xls']:
-            df = pd.read_excel(source_path, sheet_name=sheet)
-        elif ext == '.json':
-            df = pd.read_json(source_path, orient=orient)
-        elif ext == '.parquet':
-            df = pd.read_parquet(source_path)
+                df = pd.read_sql(query, source)
+            except Exception as e:
+                raise ValueError(f"Failed to execute query on database. Error: {e}")
+        elif table:
+            try:
+                df = pd.read_sql_table(table, source)
+            except Exception as e:
+                raise ValueError(f"Failed to read table '{table}' from database. Error: {e}")
         else:
-            raise ValueError(f"Unsupported file format: {ext}")
+            raise ValueError("For database sources, you must provide either 'query' or 'table' in loader_params.")
+    else:
+        source_path = Path(source)
+        if not source_path.exists():
+            raise ValueError(f"File not found: {source}")
             
-    except Exception as e:
-        if isinstance(e, ValueError) and ("Unsupported file format" in str(e) or "File could not be decoded" in str(e)):
-            raise
-        raise ValueError(f"Failed to read file {source}. Error: {e}")
+        ext = source_path.suffix.lower()
+        
+        sep = params.get('separator', ',')
+        enc = params.get('encoding', 'utf-8')
+        sheet = params.get('sheet_name', 0)
+        orient = params.get('orient', 'records')
+        
+        try:
+            if ext == '.csv':
+                try:
+                    df = pd.read_csv(source_path, sep=sep, encoding=enc)
+                except UnicodeDecodeError:
+                    # Fallback to latin-1
+                    try:
+                        from ds_engine.utils import logger
+                        log = logger.get_logger('loader')
+                        log.warning(f"Failed to decode {source} with {enc}. Falling back to 'latin-1'")
+                    except ImportError:
+                        pass
+                    try:
+                        df = pd.read_csv(source_path, sep=sep, encoding='latin-1')
+                    except Exception:
+                        raise ValueError("File could not be decoded. Try specifying encoding in loader_params (e.g. encoding: cp1252 or encoding: iso-8859-1).")
+            elif ext in ['.xlsx', '.xls']:
+                df = pd.read_excel(source_path, sheet_name=sheet)
+            elif ext == '.json':
+                df = pd.read_json(source_path, orient=orient)
+            elif ext == '.parquet':
+                df = pd.read_parquet(source_path)
+            else:
+                raise ValueError(f"Unsupported file format: {ext}")
+                
+        except Exception as e:
+            if isinstance(e, ValueError) and ("Unsupported file format" in str(e) or "File could not be decoded" in str(e)):
+                raise
+            raise ValueError(f"Failed to read file {source}. Error: {e}")
         
     df = _sanitize_columns(df)
     
